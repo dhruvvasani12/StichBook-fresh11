@@ -12,13 +12,25 @@ Your work. Your records. All in one place.
 - Fabric length is work count x 6 metres.
 - One record per worker, machine and date.
 
+## Files
+
+| Path | What it is |
+| --- | --- |
+| `index.html` | Page shell |
+| `css/styles.css` | Styles, light and dark themes |
+| `js/app.js` | The whole app: screens, validation, exports, storage |
+| `supabase/migrations/0001_init.sql` | Database schema, security rules, audit triggers, private photo bucket |
+| `supabase/README.md` | Supabase setup steps and the security rules explained |
+
 ## Run it
 
-It is a single static page. Open `index.html` in a browser, or serve the folder with any static host.
+It is a static site with no build step. Serve the folder with any static host:
 
 ```
 python3 -m http.server 8000
 ```
+
+Then open http://localhost:8000. Opening `index.html` directly from disk also works, but a server is better.
 
 Demo accounts (sample data, created on first load):
 
@@ -27,12 +39,16 @@ Demo accounts (sample data, created on first load):
 | Admin | admin@stitchbook.app | Admin#2026 |
 | Worker | worker1@stitchbook.app | Worker#2026 |
 
-## Data
+The Excel export loads its library (JSZip) from a CDN, so it needs an internet connection. CSV and PDF work offline.
 
-This version stores everything in the browser (localStorage for records and accounts, IndexedDB for photos). Nothing is shared between devices. Use Settings > Download backup to export all data as JSON.
+## Data: current state
 
-Do not commit real worker backups to a public repository.
+This version stores everything in the browser (localStorage for records and accounts, IndexedDB for photos). Nothing is shared between devices, and passwords are hashed in the browser only. It is a working prototype and a design reference, not a place for real worker data.
 
-## Next step
+Settings > Download backup exports everything as JSON. Backup files contain account details, so they are ignored by `.gitignore`. Do not commit them to a public repository.
 
-Connect a Supabase backend: shared accounts, real email confirmation, row-level security for ownership and admin-only actions, private photo storage with signed links, and an immutable audit table.
+## Moving to Supabase
+
+The database side is done and tested: `supabase/migrations/0001_init.sql` enforces ownership, active status, admin-only actions, the 2-day correction window, duplicate prevention, 2 to 12 photos, fabric calculation, an append-only audit log and private photo storage. It was run against PostgreSQL 16 and checked with a set of user-level tests (workers cannot read or edit each other's records, inactive workers are locked out, nobody can edit the audit log, the last admin cannot be removed).
+
+Still to do: replace the storage layer in `js/app.js` (the `db`, `save`, `PH` and sign-in functions) with `@supabase/supabase-js` calls. Steps are in `supabase/README.md`.

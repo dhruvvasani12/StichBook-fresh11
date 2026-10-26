@@ -1,0 +1,10 @@
+# Backups hold account details and worker records
+stitchbook-backup-*.json
+
+# Secrets
+.env
+.env.*
+*.pem
+
+.DS_Store
+node_modules/
